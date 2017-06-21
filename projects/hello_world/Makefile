@@ -32,21 +32,21 @@ AR = $(TOOLCHAIN)ar
 INSTRUCTION_MODE = thumb
 TARGET = blinkled
 TARGET_EXT = elf
-LD_SCRIPT = ../../cmsis/nxp/MKL46Z4/Source/gcc/MKL46Z256xxx4_flash.ld
+LD_SCRIPT = ../../cmsis/MKL46Z4/linker/MKL46Z256xxx4_flash.ld
 
 CC_SYMBOLS = -DTOOLCHAIN_GCC_ARM -DNDEBUG
 
 LIBS = -lm -lgcc -lc -lnosys
 
 # directories
-INC_DIRS = ../../cmsis/CMSIS/Include
+INC_DIRS = ../../cmsis/arm
 # app headers directories (remove comment and add more files)
-INC_DIRS += ../../cmsis/nxp/MKL46Z4/Include
+INC_DIRS += ../../cmsis/MKL46Z4
 INC_DIRS += .
 
-SRC_DIRS = ../../cmsis/nxp/MKL46Z4/Source
+SRC_DIRS = ../../cmsis/arm
 # app source directories (remove comment and add more files)
-SRC_DIRS += ../../cmsis/nxp/MKL46Z4/Source/gcc
+SRC_DIRS += ../../cmsis/MKL46Z4
 SRC_DIRS += .
 
 OUT_DIR = build
