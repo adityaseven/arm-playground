@@ -10,9 +10,19 @@ SIZE    = arm-none-eabi-size
 CFLAGS  = -c
 CFLAGS += -g
 cflags += -ggdb
+
 CFLAGS += -Wall
+
+#Creates a function name .text section in the elf, it means that there is a
+#corresponding section for each function.
+# http://www.keil.com/support/man/docs/armclang_ref/armclang_ref_sam1445342406709.htm
+# increases the size of the code
+# https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
+# Not compatible with g?
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+
+#https://gcc.gnu.org/onlinedocs/gcc-4.2.2/gcc/C-Dialect-Options.html
 CFLAGS += -fno-builtin
 CFLAGS += -Wno-unused-function
 CFLAGS += -ffreestanding
