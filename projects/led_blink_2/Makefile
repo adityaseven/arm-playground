@@ -7,14 +7,31 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE    = arm-none-eabi-size
 
-CFLAGS  = -c -g -ggdb
-CFLAGS += -Wall -ffunction-sections -fdata-sections -fno-builtin
-CFLAGS += -Wno-unused-function -ffreestanding
-CFLAGS += -mcpu=cortex-m0plus -MMD -MP -mthumb
+CFLAGS  = -c
+CFLAGS += -g
+cflags += -ggdb
+CFLAGS += -Wall
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+CFLAGS += -fno-builtin
+CFLAGS += -Wno-unused-function
+CFLAGS += -ffreestanding
+CFLAGS += -MMD -MP
+CFLAGS += -mcpu=cortex-m0plus -mthumb
+
+ASFLAGS = $(CFLAGS)
 
 #what are these lgcc lc and lnosys and why do they need to be in this order?
 #what is Wl and gc-sections
-LFLAGS  = -lgcc -lc -lnosys  -TMKL46Z256xxx4_flash.ld  -Wl,--gc-sections -mcpu=cortex-m0plus -mthumb
+
+LINKER = ../../cmsis/MKL46Z4/linker/MKL46Z256xxx4_flash.ld
+
+LFLAGS  = -lgcc
+LFLAGS += -lc
+LFLAGS += -lnosys
+LFLAGS += -T$(LINKER)
+LFLAGS += -Wl,--gc-sections
+LFLAGS += -mcpu=cortex-m0plus -mthumb
 
 #Library headers
 CFLAGS += -I./
@@ -25,30 +42,27 @@ CFLAGS += -I../../cmsis/MKL46Z4/
 OBJS = main.o
 
 #startup files
-OBJS += startup_MKL46Z4.o
+OBJS += ../../cmsis/MKL46Z4/startup_MKL46Z4.o
 
 #Library objects
 OBJS += ../../cmsis/MKL46Z4/system_MKL46Z4.o
 
-#http://mcufreaks.blogspot.com/2013/03/customizable-makefile-for-gcc-arm.html
-#embed with elliot
 ##Rules
 
 #This is required to capture the assembly code
 %.o : %.s
-	$(AS) $(CFLAGS) -o $@ $<
-
+	$(AS) $(ASFLAGS) -o $@ $<
 
 all: main.bin
 
-main.elf: $(OBJS) MKL46Z256xxx4_flash.ld
+main.elf: $(OBJS) $(LINKER)
 	$(LD) $(LFLAGS) -o main.elf $(OBJS)
 
 main.bin: main.elf
 	$(OBJCOPY) --strip-unneeded -O binary $< $@
 
 clean:
-	rm -f $(OBJS) main.elf main.bin
+	rm -f $(OBJS) main.elf main.bin *.d
 
 
 .PHONY: all clean
