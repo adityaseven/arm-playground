@@ -1,0 +1,4 @@
+
+custom structure place all files in a single folder,
+put the arm stuff in arm folder and have folders for the core.
+both source and headers will be in the same location
