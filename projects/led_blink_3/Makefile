@@ -42,25 +42,34 @@ INC    += -I../../cmsis/arm/
 INC    += -I../../cmsis/$(CHIP_FAMILY)/
 CFLAGS += $(INC)
 
+
+#https://www.gnu.org/software/make/manual/html_node/General-Search.html
 VPATH	= $(SYSTEM_SRC)
 
+#Capture all the c files
 SYSTEM_OBJ_C_SRC  = $(wildcard $(SYSTEM_SRC)/*.c)
+#Capture all the object file for the c files
 SYSTEM_LIB_C_OBJS  = $(SYSTEM_OBJ_C_SRC:.c=.o)
 
+#Capture all the s assembly files
 SYSTEM_OBJ_s_SRC  = $(wildcard $(SYSTEM_SRC)/*.s)
+#Capture all the object file for the s assembly files
 SYSTEM_LIB_s_OBJS  = $(SYSTEM_OBJ_s_SRC:.s=.o)
 
+#Capture all the s assembly files
 SYSTEM_OBJ_S_SRC  = $(wildcard $(SYSTEM_SRC)/*.S)
+#Capture all the object file for the s assembly files
 SYSTEM_LIB_S_OBJS  = $(SYSTEM_OBJ_S_SRC:.S=.o)
 
+#Remove the folder information for the c, s, S assembly files
 SYSTEM_LOCAL_LIB_OBJS   = $(notdir $(SYSTEM_LIB_C_OBJS))
 SYSTEM_LOCAL_LIB_OBJS  += $(notdir $(SYSTEM_LIB_s_OBJS))
 SYSTEM_LOCAL_LIB_OBJS  += $(notdir $(SYSTEM_LIB_S_OBJS))
 
-
 ##Rules
 all: main.bin
 
+#Create the core.a file
 core.a: $(SYSTEM_OBJ_SRC)
 	$(MAKE) $(SYSTEM_LOCAL_LIB_OBJS)
 	$(AR) rcs core.a $(SYSTEM_LOCAL_LIB_OBJS)
