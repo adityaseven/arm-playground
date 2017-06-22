@@ -24,9 +24,19 @@ CFLAGS += -fdata-sections
 
 #https://gcc.gnu.org/onlinedocs/gcc-4.2.2/gcc/C-Dialect-Options.html
 CFLAGS += -fno-builtin
+
+#Remove Warn if a defined function is not used
+#https://stackoverflow.com/questions/386220/how-can-i-hide-defined-but-not-used-warnings-in-gcc?rq=1
 CFLAGS += -Wno-unused-function
+
+#Tells the compiler not assume things, i.e that program starts at main
+#https://stackoverflow.com/questions/17692428/what-is-ffreestanding-option-in-gcc
 CFLAGS += -ffreestanding
+
+#Print out the dependencies
 CFLAGS += -MMD -MP
+
+#Tell the compiler which cpur and instruction set to use
 CFLAGS += -mcpu=cortex-m0plus -mthumb
 
 ASFLAGS = $(CFLAGS)
@@ -36,9 +46,13 @@ ASFLAGS = $(CFLAGS)
 
 LINKER = ../../cmsis/MKL46Z4/linker/MKL46Z256xxx4_flash.ld
 
+#Attaches a stub version of system calls to the Program
 LFLAGS  = -lgcc
 LFLAGS += -lc
 LFLAGS += -lnosys
+LFLAGS += --specs=nosys.specs
+
+#Add the linker
 LFLAGS += -T$(LINKER)
 LFLAGS += -Wl,--gc-sections
 LFLAGS += -mcpu=cortex-m0plus -mthumb
