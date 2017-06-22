@@ -1,0 +1,38 @@
+
+This version the main project is led blink 2, where we added a custom Makefile
+from scratch following
+
+http://hackaday.com/2016/03/22/embed-with-elliot-arm-makefile-madness/
+
+Did not follow his first makefile to the letter since compiling assembly was not known
+and libnosys was also not known
+https://gist.github.com/hexagon5un/48df2a236531d3ff01af
+
+took a little help from his second makefile
+https://gist.github.com/hexagon5un/90c71f9e74e67ae4c883
+
+.
+├── cmsis
+│   ├── MKL46Z4
+│   │   ├── MKL46Z4.h
+│   │   ├── MKL46Z4_features.h
+│   │   ├── linker
+│   │   │   ├── MKL46Z256xxx4_flash.ld
+│   │   │   └── MKL46Z256xxx4_ram.ld
+│   │   ├── startup_MKL46Z4.s
+│   │   ├── system_MKL46Z4.c
+│   │   ├── system_MKL46Z4.h
+│   └── arm
+│       ├── cmsis_gcc.h
+│       └── core_cm0plus.h
+└── projects
+    ├── hello_world
+    │   ├── Makefile
+    │   ├── main.c
+    │   └── main.h
+    └── led_blink_2
+        ├── Makefile
+        ├── main.c
+        ├── main.h
+
+7 directories, 23 files
