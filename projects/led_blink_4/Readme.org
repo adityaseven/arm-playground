@@ -28,5 +28,5 @@ continue
 #+END_EXAMPLE
 
 References
-https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/l1/stm32l-discovery/usart-semihosting
-https://wiki.dlang.org/Minimal_semihosted_ARM_Cortex-M_%22Hello_World%22
+- [[https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/l1/stm32l-discovery/usart-semihosting][Semi Hosting libopencmd3]]
+- [[https://wiki.dlang.org/Minimal_semihosted_ARM_Cortex-M_%22Hello_World%22][Dlang ARM Cortex]]
