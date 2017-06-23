@@ -20,6 +20,13 @@
 extern "C" {
 #endif
 
+#if defined(ENABLE_SEMIHOSTING) && (ENABLE_SEMIHOSTING)
+extern void initialise_monitor_handles(void);
+#define semi_printf(format, arg...) printf(format, ## arg)
+#else
+#define semi_printf(format, arg...)
+#endif
+
 /**
  * \brief  LED1 Toggle with a delay
  * \param  void

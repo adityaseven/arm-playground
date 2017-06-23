@@ -1,5 +1,5 @@
 
-To enable Semi Hosting
+To see  Semi Hosting print messages
 
 Run openocd with the following command
 

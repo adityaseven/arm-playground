@@ -20,8 +20,6 @@
 //link
 //https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/l1/stm32l-discovery/usart-semihosting
 
-extern void initialise_monitor_handles(void);
-
 int main(void)
 {
     gpio_init();
@@ -29,7 +27,7 @@ int main(void)
 	initialise_monitor_handles();
 #endif
 
-	printf("Hello World\n");
+	semi_printf("Hello World\n");
 
     PTE->PSOR = (1U << 29U);
 
