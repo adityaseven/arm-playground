@@ -1,0 +1,32 @@
+
+To enable Semi Hosting
+
+Run openocd with the following command
+
+#+NAME: opencd_call
+#+BEGIN_SRC sh
+openocd -f board/frdm-kl46z.cfg 
+#+END_SRC
+
+In another shell load up gdb
+
+#+NAME: opencd_call
+#+BEGIN_SRC sh
+arm-none-eabi-gdb main.elf
+#+END_SRC
+
+Next in gdb input the following commmands
+
+#+NAME: gdb_info
+#+BEGIN_EXAMPLE
+target remote localhost:3333
+monitor arm semihosting enable
+monitor reset halt
+load
+monitor reset init
+continue
+#+END_EXAMPLE
+
+References
+https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/l1/stm32l-discovery/usart-semihosting
+https://wiki.dlang.org/Minimal_semihosted_ARM_Cortex-M_%22Hello_World%22

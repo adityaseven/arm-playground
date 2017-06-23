@@ -1,5 +1,6 @@
 SUFFIX = arm-none-eabi-
 CC      = $(SUFFIX)gcc
+CXX     = $(SUFFIX)g++
 LD      = $(SUFFIX)gcc
 AS      = $(SUFFIX)gcc -x assembler-with-cpp
 AR      = $(SUFFIX)ar
@@ -17,7 +18,7 @@ OBJS = main.o
 
 CFLAGS  = -c
 CFLAGS += -g
-cflags += -ggdb
+CFLAGS += -ggdb
 CFLAGS += -Wall
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
@@ -29,9 +30,26 @@ CFLAGS += -mcpu=$(CPU) -m$(INSTRUCTION)
 
 ASFLAGS = $(CFLAGS)
 
-LFLAGS = --specs=nosys.specs
+# To disable, run "make ENABLE_SEMIHOSTING=0" or comment next line out
+ENABLE_SEMIHOSTING ?= 1
+
+ifeq ($(ENABLE_SEMIHOSTING),1)
+#Added --specs=rdimon.specs for semihosting support
+#http://bgamari.github.io/posts/2014-10-31-semihosting.html
+LFLAGS       = --specs=rdimon.specs
+LFLAGS       += -lc -lrdimon
+CFLAGS       += -DENABLE_SEMIHOSTING=1
+else
+LFLAGS        = --specs=nosys.specs
+endif
+
+#Added nano.specs to link with newlib-nano decreases the size dramatically and
+#allows for semihosting
+#https://mcuoneclipse.com/2014/07/11/switching-arm-gnu-tool-chain-and-libraries-in-kinetis-design-studio/
+LFLAGS += --specs=nano.specs
 LFLAGS += -T$(LINKER)
-LFLAGS += -Wl,--gc-sections
+#Add main.map shows how the memory is loaded
+LFLAGS += -Wl,-Map=main.map,--gc-sections
 LFLAGS += -mcpu=$(CPU) -m$(INSTRUCTION)
 
 ## main libraries
@@ -45,40 +63,60 @@ CFLAGS += $(INC)
 
 VPATH	= $(SYSTEM_SRC)
 
-SYSTEM_OBJ_C_SRC  = $(wildcard $(SYSTEM_SRC)/*.c)
-SYSTEM_LIB_C_OBJS  = $(SYSTEM_OBJ_C_SRC:.c=.o)
+#All source/object files
 
-SYSTEM_OBJ_s_SRC  = $(wildcard $(SYSTEM_SRC)/*.s)
-SYSTEM_LIB_s_OBJS  = $(SYSTEM_OBJ_s_SRC:.s=.o)
+#patsubst
+#https://www.gnu.org/software/make/manual/html_node/Text-Functions.html
+C_SRCS  = $(foreach dir,$(SYSTEM_SRC),$(wildcard $(dir)/*.c))
+C_OBJS  = $(patsubst %.c, %.o, $(notdir $(C_SRCS)))
+OBJS   += $(C_OBJS)
 
-SYSTEM_OBJ_S_SRC  = $(wildcard $(SYSTEM_SRC)/*.S)
-SYSTEM_LIB_S_OBJS  = $(SYSTEM_OBJ_S_SRC:.S=.o)
+CPP_SRCS  = $(foreach dir,$(SYSTEM_SRC),$(wildcard $(dir)/*.cpp))
+CPP_OBJS  = $(patsubst %.cpp, %.o, $(notdir $(CPP_SRCS)))
+OBJS   += $(CPP_OBJS)
 
-SYSTEM_LOCAL_LIB_OBJS   = $(notdir $(SYSTEM_LIB_C_OBJS))
-SYSTEM_LOCAL_LIB_OBJS  += $(notdir $(SYSTEM_LIB_s_OBJS))
-SYSTEM_LOCAL_LIB_OBJS  += $(notdir $(SYSTEM_LIB_S_OBJS))
+s_SRCS  = $(foreach dir,$(SYSTEM_SRC),$(wildcard $(dir)/*.s))
+s_OBJS  = $(patsubst %.s, %.o, $(notdir $(s_SRCS)))
+OBJS   += $(s_OBJS)
+
+S_SRCS  = $(foreach dir,$(SYSTEM_SRC),$(wildcard $(dir)/*.S))
+S_OBJS  = $(patsubst %.S, %.o, $(notdir $(S_SRCS)))
+OBJS   += $(S_OBJS)
 
 ##Rules
-all: main.bin
 
-#Create the core.a file
-$(SYSTEM_LIB): $(SYSTEM_OBJ_SRC)
-	$(MAKE) $(SYSTEM_LOCAL_LIB_OBJS)
-	$(AR) rcs $(SYSTEM_LIB) $(SYSTEM_LOCAL_LIB_OBJS)
-	rm -f $(SYSTEM_LOCAL_LIB_OBJS)
+#Capture the following files and apply the rules below to convert them to objects
 
-#This is required to capture the assembly code
 %.o : %.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
-main.elf: $(OBJS) $(SYSTEM_LIB) $(LINKER)
-	$(LD) $(LFLAGS) -o main.elf $(OBJS) $(SYSTEM_LIB)
+%.o : %.S
+	$(AS) $(ASFLAGS) -o $@ $<
 
-main.bin: main.elf
-	$(OBJCOPY) --strip-unneeded -O binary $< $@
+%.o : %.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+%.o : %.cpp
+	$(CC) $(CXXFLAGS) -o $@ $<
+
+all: exec bin info
+	$(LD) $(LFLAGS) -o main.elf $(OBJS)
+
+exec: $(OBJS)
+	$(LD) $(LFLAGS) -o main.elf $(OBJS)
+
+bin:
+	$(OBJCOPY) --strip-unneeded -O binary main.elf main.bin
+
+#Get the information out, helps if the file is too big to load into memory
+#and if openocd . gdb work here.
+#https://mcuoneclipse.com/2013/04/14/text-data-and-bss-code-and-data-size-explained/
+info:
+	$(SIZE) -A main.elf
+	$(SIZE) -B main.elf
 
 clean:
-	rm -f $(OBJS) main.elf main.bin *.d $(SYSTEM_LIB) main.o
+	rm -f $(OBJS) main.elf main.bin main.map *.d $(SYSTEM_LIB) main.o
 
 
-.PHONY: all clean
+.PHONY: all clean bin exec
