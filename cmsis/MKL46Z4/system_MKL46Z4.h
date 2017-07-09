@@ -127,7 +127,7 @@ extern "C" {
 /* SMC_PMPROT: AVLP=1,ALLS=1,AVLLS=1 */
 #define SYSTEM_SMC_PMPROT_VALUE        0x2AU               /* SMC_PMPROT */
 
-#define DEFAULT_SYSTEM_CLOCK           20971520U           /* Default System clock value */
+#define DEFAULT_SYSTEM_CLOCK           48000000U           /* Default System clock value */
 
 
 /**
