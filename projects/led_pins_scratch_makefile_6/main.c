@@ -48,6 +48,8 @@ int main(void)
 
 	PORTC->PCR[SW1]  = PORT_PCR_MUX(1U);
 	PORTC->PCR[SW3]  = PORT_PCR_MUX(1U);
+
+	//Enable internal pull up registers for the switches
 	PORTC->PCR[SW1] |= (PORT_PCR_PE(1U) | PORT_PCR_PS(1U));
 	PORTC->PCR[SW3] |= (PORT_PCR_PE(1U) | PORT_PCR_PS(1U));
 
@@ -55,10 +57,9 @@ int main(void)
 	GPIOE->PDDR = (1U << RED_LED);
 	GPIOD->PDDR = (1U << GREEN_LED);
 
+	//clear the leds
 	GPIOE->PCOR = (1U << RED_LED);
 	GPIOD->PCOR = (1U << GREEN_LED);
-
-	GPIOC->PDDR = 0U;
 
 	while(1) {
 		if (GPIOC->PDIR & (1U << SW1))
