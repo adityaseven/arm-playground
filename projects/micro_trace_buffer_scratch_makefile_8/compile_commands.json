@@ -1,0 +1,76 @@
+[
+    {
+        "arguments": [
+            "cc", 
+            "-c", 
+            "-g", 
+            "-ggdb", 
+            "-Wall", 
+            "-ffunction-sections", 
+            "-fdata-sections", 
+            "-fno-builtin", 
+            "-Wno-unused-function", 
+            "-ffreestanding", 
+            "-mcpu=cortex-m0plus", 
+            "-mthumb", 
+            "-I./", 
+            "-I../../cmsis/arm/", 
+            "-I../../cmsis/MKL46Z4/", 
+            "-o", 
+            "system_MKL46Z4.o", 
+            "../../cmsis/MKL46Z4/system_MKL46Z4.c"
+        ], 
+        "directory": "/Users/aditya/workspace/projs/embedded/frdm-dl46z/skinny/projects/micro_trace_buffer_scratch_makefile_8", 
+        "file": "../../cmsis/MKL46Z4/system_MKL46Z4.c"
+    }, 
+    {
+        "arguments": [
+            "cc", 
+            "-c", 
+            "-g", 
+            "-ggdb", 
+            "-Wall", 
+            "-ffunction-sections", 
+            "-fdata-sections", 
+            "-fno-builtin", 
+            "-Wno-unused-function", 
+            "-ffreestanding", 
+            "-mcpu=cortex-m0plus", 
+            "-mthumb", 
+            "-I./", 
+            "-I../../cmsis/arm/", 
+            "-I../../cmsis/MKL46Z4/", 
+            "-o", 
+            "main.o", 
+            "main.c"
+        ], 
+        "directory": "/Users/aditya/workspace/projs/embedded/frdm-dl46z/skinny/projects/micro_trace_buffer_scratch_makefile_8", 
+        "file": "main.c"
+    }, 
+    {
+        "arguments": [
+            "cc", 
+            "-c", 
+            "-x", 
+            "assembler-with-cpp", 
+            "-g", 
+            "-ggdb", 
+            "-Wall", 
+            "-ffunction-sections", 
+            "-fdata-sections", 
+            "-fno-builtin", 
+            "-Wno-unused-function", 
+            "-ffreestanding", 
+            "-mcpu=cortex-m0plus", 
+            "-mthumb", 
+            "-I./", 
+            "-I../../cmsis/arm/", 
+            "-I../../cmsis/MKL46Z4/", 
+            "-o", 
+            "startup_MKL46Z4.o", 
+            "../../cmsis/MKL46Z4/startup_MKL46Z4.s"
+        ], 
+        "directory": "/Users/aditya/workspace/projs/embedded/frdm-dl46z/skinny/projects/micro_trace_buffer_scratch_makefile_8", 
+        "file": "../../cmsis/MKL46Z4/startup_MKL46Z4.s"
+    }
+]
