@@ -18,6 +18,24 @@
 #include <stdio.h>
 #include <MKL46Z4.h>
 
+#define ADC0_LIGHT_SENSOR_PORT PORTE
+#define ADC0_LIGHT_SENSOR_PIN 22
+#define ADC0_LIGHT_SENSOR_CHANNEL 0x3
+
+#define RED_LED   29U
+#define GREEN_LED 5U
+#define RPORT  PORTE
+#define GPORT  PORTD
+#define RGPIO  GPIOE
+#define GGPIO  GPIOD
+
+#define SW1		3U
+#define SW3		12U
+#define S1PORT  PORTC
+#define S3PORT  PORTC
+#define S1GPIO  GPIOC
+#define S3GPIO  GPIOC
+
 void retarget_init()
 {
 
@@ -67,6 +85,8 @@ int _write(int fd, char *ptr, int len)
 	return len;
 }
 
+
+//TODO: Maybe do some calibration on this?
 void adc_init()
 {
 
@@ -76,56 +96,51 @@ void adc_init()
 	//Enable ADC0 itself
 	SIM->SCGC6 |= SIM_SCGC6_ADC0(1);
 
-	PORTE->PCR[22] &= ~PORT_PCR_MUX_MASK;
-	PORTE->PCR[22] |= PORT_PCR_MUX(0x0);
+	PORTE->PCR[ADC0_LIGHT_SENSOR_PIN] &= ~PORT_PCR_MUX_MASK;
+	PORTE->PCR[ADC0_LIGHT_SENSOR_PIN] |= PORT_PCR_MUX(0x0);
 
 	//Configure ADC
-	//Clear out ADC0 CFG1
-	ADC0->CFG1 &= ~(ADC_CFG1_ADIV_MASK);
-	ADC0->CFG1 &= ~(ADC_CFG1_MODE_MASK | ADC_CFG1_ADICLK_MASK);
 
-	//Enable Async Clock
-	ADC0->CFG1 |= ADC_CFG1_ADICLK(0x3);
-
-	//Select 16 bit conversion mode
-	ADC0->CFG1 |= ADC_CFG1_MODE(0x1);
-
-	//Select divide ratio as 8
-	ADC0->CFG1 |= ADC_CFG1_ADIV(0x3);
-
-	//Clear out CFG2
-	ADC0->CFG2 &= ~(ADC_CFG2_ADLSTS_MASK | ADC_CFG2_ADHSC_MASK | ADC_CFG2_ADACKEN_MASK);
-	ADC0->CFG2 &= ~(ADC_CFG2_MUXSEL_MASK);
+	//Enable Async Clock Select 16 bit conversion mode and Select divide ratio as 8
+	ADC0->CFG1 = (ADC_CFG1_ADICLK(0x3) | ADC_CFG1_MODE(0x1) | ADC_CFG1_ADIV(0x3));
 
 	//Enable Async clock
-	ADC0->CFG2 |= ADC_CFG2_ADACKEN_MASK;
+	ADC0->CFG2 = ADC_CFG2_ADACKEN_MASK;
 
-	//Select ref clock
-	ADC0->SC2 &= ~ADC_SC2_REFSEL_MASK;
+	ADC0->SC2 = 0;
+	ADC0->SC3 = 0;
+}
 
-	//Select Software Trigger
-	ADC0->SC2 &= ~ADC_SC2_ADTRG_MASK;
+void led_init()
+{
+	SIM->SCGC5 |= (SIM_SCGC5_PORTD_MASK |
+					SIM_SCGC5_PORTE_MASK);
 
-	//Disable continue conversion?
-	ADC0->SC3 &= ~ADC_SC3_ADCO_MASK;
+	GPORT->PCR[GREEN_LED] |= PORT_PCR_MUX(1U);
+	RPORT->PCR[RED_LED]   |= PORT_PCR_MUX(1U);
+
+	GGPIO->PDDR |= (1U << GREEN_LED);
+	RGPIO->PDDR |= (1U << RED_LED);
+
+	GGPIO->PSOR |= (1U << GREEN_LED);
+	RGPIO->PSOR |= (1U << RED_LED);
 }
 
 static inline uint32_t read_light_sensor_adc()
 {
-	//Trigger
-	ADC0->SC1[0] |= ADC_SC1_ADCH(0x3);
+	ADC0->SC1[0] = ADC_SC1_ADCH(ADC0_LIGHT_SENSOR_CHANNEL);
 
 	while ((ADC0->SC1[0] & ADC_SC1_COCO_MASK) != ADC_SC1_COCO_MASK);
 
 	return ADC0->R[0];
 }
 
-void delay(void)
+void delay(uint32_t adc_light)
 {
 	volatile unsigned int i, j;
 
-	for (i = 0U; i < 50000U; i++) {
-		for (j = 0U; j < 100U; j++) {
+	for (i = 0U; i < adc_light; i++) {
+		for (j = 0U; j < 1000U; j++) {
 			__asm__("nop");
 		}
 	}
@@ -133,13 +148,21 @@ void delay(void)
 
 int main()
 {
+	uint32_t adc_light =0;
 	retarget_init();
 	adc_init();
+	led_init();
 
 	while(1) {
-		printf("Hello World\r\n");
-		printf("adc Value -%x\r\n", read_light_sensor_adc());
-		delay();
+		delay(adc_light);
+		GGPIO->PSOR |= (1U << GREEN_LED);
+		RGPIO->PSOR |= (1U << RED_LED);
+
+		delay(adc_light);
+		adc_light = read_light_sensor_adc();
+		GGPIO->PCOR |= (1U << GREEN_LED);
+		RGPIO->PCOR |= (1U << RED_LED);
+		printf("adc Value: %lu\r\n", adc_light);
 	}
 
 	return 0;
