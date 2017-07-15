@@ -126,6 +126,46 @@ void led_init()
 	RGPIO->PSOR |= (1U << RED_LED);
 }
 
+void adc_calibrate()
+{
+	uint16_t cal = 0;
+
+	//Begin Calibration
+	ADC0->SC3 |= ADC_SC3_CAL_MASK;
+
+	while (!(ADC0->SC1[0] & ADC_SC1_COCO_MASK));
+
+	if (ADC0->SC3 & ADC_SC3_CALF_MASK) {
+		printf("Calibration faile \r\n");
+		return;
+	}
+
+	cal += ADC0->CLP0;
+	cal += ADC0->CLP1;
+	cal += ADC0->CLP2;
+	cal += ADC0->CLP3;
+	cal += ADC0->CLP4;
+	cal += ADC0->CLPS;
+
+	cal /= 2;
+	cal = cal | 0x8000;
+
+	ADC0->PG = cal;
+
+	cal = 0;
+	cal += ADC0->CLM0;
+	cal += ADC0->CLM1;
+	cal += ADC0->CLM2;
+	cal += ADC0->CLM3;
+	cal += ADC0->CLM4;
+	cal += ADC0->CLMS;
+
+	cal /= 2;
+	cal |= 0x8000;
+
+	ADC0->MG = cal;
+}
+
 static inline uint32_t read_light_sensor_adc()
 {
 	ADC0->SC1[0] = ADC_SC1_ADCH(ADC0_LIGHT_SENSOR_CHANNEL);
@@ -151,6 +191,7 @@ int main()
 	uint32_t adc_light =0;
 	retarget_init();
 	adc_init();
+	adc_calibrate();
 	led_init();
 
 	while(1) {
