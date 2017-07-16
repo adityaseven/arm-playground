@@ -37,9 +37,11 @@ LFLAGS += -mcpu=$(CPU) -m$(INSTRUCTION)
 
 ## main libraries
 SYSTEM_SRC  = ../../cmsis/$(CHIP_FAMILY)
+SYSTEM_SRC += ../utils
 
 #Library headers
 INC     = -I./
+INC	   += -I../utils
 INC    += -I../../cmsis/arm/
 INC    += -I../../cmsis/$(CHIP_FAMILY)/
 CFLAGS += $(INC)
