@@ -58,19 +58,19 @@ int main(void)
 	GPIOD->PDDR = (1U << GREEN_LED);
 
 	//clear the leds
-	GPIOE->PCOR = (1U << RED_LED);
-	GPIOD->PCOR = (1U << GREEN_LED);
+	GPIOE->PSOR = (1U << RED_LED);
+	GPIOD->PSOR = (1U << GREEN_LED);
 
 	while(1) {
-		if (GPIOC->PDIR & (1U << SW1))
-			GPIOD->PSOR = (1U << GREEN_LED);
-		 else
+		if (!(GPIOC->PDIR & (1U << SW1)))
 			GPIOD->PCOR = (1U << GREEN_LED);
-
-		if (GPIOC->PDIR & (1U << SW3))
-			GPIOE->PSOR = (1U << RED_LED);
 		else
+			GPIOD->PSOR = (1U << GREEN_LED);
+
+		if (!(GPIOC->PDIR & (1U << SW3)))
 			GPIOE->PCOR = (1U << RED_LED);
+		else
+			GPIOE->PSOR = (1U << RED_LED);
 	}
 	return 0;
 }
