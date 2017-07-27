@@ -128,6 +128,7 @@ extern "C" {
 #define SYSTEM_SMC_PMPROT_VALUE        0x2AU               /* SMC_PMPROT */
 
 #define DEFAULT_SYSTEM_CLOCK           48000000U           /* Default System clock value */
+#define DEFAULT_BUS_CLOCK              24000000U          /* Default bus clock*/
 
 
 /**
