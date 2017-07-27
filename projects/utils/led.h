@@ -30,6 +30,9 @@
 #define GON  (GGPIO->PCOR |= (1U << GREEN_LED))
 #define ROFF (RGPIO->PSOR |= (1U << RED_LED))
 #define GOFF (GGPIO->PSOR |= (1U << GREEN_LED))
+#define RTOG (RGPIO->PTOR |= (1U << RED_LED))
+#define GTOG (GGPIO->PTOR |= (1U << GREEN_LED))
+
 
 void init_leds();
 
