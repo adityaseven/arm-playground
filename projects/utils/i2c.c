@@ -102,9 +102,28 @@ static void  i2c_set_frequency(uint32_t i2c_idx, uint32_t baud)
 	i2c_b->F = I2C_F_ICR(b_icr) | I2C_F_MULT(b_mul);
 }
 
+static void enable_i2c_clock(uint32_t i2c_idx)
+{
+	uint32_t scl_pin, scl_mux, sda_pin, sda_mux;
+
+	SIM->SCGC4 = i2c_info[i2c_idx].scgc4_enable_mask;
+	SIM->SCGC5 = i2c_info[i2c_idx].scgc5_enable_mask;
+
+	scl_pin = i2c_info[i2c_idx].scl_pin_num;
+	scl_mux = i2c_info[i2c_idx].pin_mux_config;
+
+	sda_pin = i2c_info[i2c_idx].sda_pin_num;
+	sda_mux = i2c_info[i2c_idx].pin_mux_config;
+
+	i2c_info[i2c_idx].pin_port->PCR[scl_pin] = PORT_PCR_MUX(scl_mux);
+	i2c_info[i2c_idx].pin_port->PCR[sda_pin] = PORT_PCR_MUX(sda_mux);
+}
+
 void i2c_init(uint32_t i2c_idx, uint32_t baud)
 {
 	volatile I2C_Type *i2c_b = i2c_info[i2c_idx].port;
+
+	enable_i2c_clock(i2c_idx);
 
 	i2c_b->C1 = 0;
 

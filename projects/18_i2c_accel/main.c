@@ -32,26 +32,14 @@
 #define I2C0_SDA_PIN  25
 #define I2C0_SDA_MUX  5
 
-void init_i2c()
-{
-	SIM->SCGC5 = SIM_SCGC5_PORTC(1) | SIM_SCGC5_PORTD(1) | SIM_SCGC5_PORTE(1);
-
-	I2C0_SCL_PORT->PCR[I2C0_SCL_PIN] = PORT_PCR_MUX(I2C0_SCL_MUX);
-	I2C0_SDA_PORT->PCR[I2C0_SDA_PIN] = PORT_PCR_MUX(I2C0_SDA_MUX);
-
-	SIM->SCGC4 |= SIM_SCGC4_I2C0(1);
-
-	i2c_init(I2C0, 1000000U);
-}
-
 int main()
 {
 	retarget_init();
-	init_i2c();
+	i2c_init(0, 1000000U);
 
 	while(1) {
 		uint8_t val = 0;
-		i2c_read_register(I2C0, 0x0D, &val);
+		i2c_read_register(0, 0x0D, &val);
 		printf("%x\r\n",val);
 	}
 	return 1;
