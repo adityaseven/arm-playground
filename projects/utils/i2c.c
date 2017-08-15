@@ -106,8 +106,8 @@ static void enable_i2c_clock(uint32_t i2c_idx)
 {
 	uint32_t scl_pin, scl_mux, sda_pin, sda_mux;
 
-	SIM->SCGC4 = i2c_info[i2c_idx].scgc4_enable_mask;
-	SIM->SCGC5 = i2c_info[i2c_idx].scgc5_enable_mask;
+	SIM->SCGC4 |= i2c_info[i2c_idx].scgc4_enable_mask;
+	SIM->SCGC5 |= i2c_info[i2c_idx].scgc5_enable_mask;
 
 	scl_pin = i2c_info[i2c_idx].scl_pin_num;
 	scl_mux = i2c_info[i2c_idx].pin_mux_config;
