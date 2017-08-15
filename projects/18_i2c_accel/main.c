@@ -44,7 +44,6 @@ void init_i2c()
 	i2c_init(I2C0, 1000000U);
 }
 
-
 int main()
 {
 	retarget_init();
