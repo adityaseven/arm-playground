@@ -122,7 +122,7 @@ bool i2c_read_register(struct i2c_handle *h, uint8_t raddr, uint8_t *val)
 {
 	i2c_start(h->port);
 
-	i2c_write_byte(h->port, 0x1D << 1|I2C_WRITE);
+	i2c_write_byte(h->port, h->slave|I2C_WRITE);
 	i2c_wait(h->port);
 	i2c_is_ack(h->port);
 
@@ -131,7 +131,7 @@ bool i2c_read_register(struct i2c_handle *h, uint8_t raddr, uint8_t *val)
 	i2c_is_ack(h->port);
 
 	i2c_do_repeated_start(h->port);
-	i2c_write_byte(h->port, 0x1D << 1|I2C_READ);
+	i2c_write_byte(h->port, h->slave|I2C_READ);
 	i2c_wait(h->port);
 	i2c_is_ack(h->port);
 
@@ -155,7 +155,7 @@ bool i2c_write_register(struct i2c_handle *h, uint8_t addr, uint8_t data)
 	i2c_start(h->port);
 
 	//TODO:
-	i2c_write_byte(h->port, 0x1D << 1|I2C_WRITE);
+	i2c_write_byte(h->port, h->slave|I2C_WRITE);
 	i2c_wait(h->port);
 
 	//TODO Add function to check for errors

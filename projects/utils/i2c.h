@@ -39,7 +39,7 @@ struct i2c_handle {
 
 static inline void i2c_set_slave_addr(struct i2c_handle *h, uint8_t s_addr)
 {
-	h->slave = s_addr;
+	h->slave = (s_addr << 1);
 }
 
 static inline void i2c_set_tx_mode(volatile I2C_Type *i2c_b)

@@ -40,7 +40,7 @@ int main()
 
 	h = i2c_get_default(0);
 	i2c_init(h, 1000000U);
-	//i2c_set_slave_addr(h, 0x1D);
+	i2c_set_slave_addr(h, 0x1D);
 
 	while(1) {
 		uint8_t val = 0;
