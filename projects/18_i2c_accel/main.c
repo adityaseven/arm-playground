@@ -34,12 +34,17 @@
 
 int main()
 {
+	struct i2c_handle *h;
+
 	retarget_init();
-	i2c_init(0, 1000000U);
+
+	h = i2c_get_default(0);
+	i2c_init(h, 1000000U);
+	//i2c_set_slave_addr(h, 0x1D);
 
 	while(1) {
 		uint8_t val = 0;
-		i2c_read_register(0, 0x0D, &val);
+		i2c_read_register(h, 0x0D, &val);
 		printf("%x\r\n",val);
 	}
 	return 1;

@@ -43,30 +43,25 @@ enum i2c_index {
 	i2c0_1 = 1,
 };
 
-struct i2c_info_holder {
-	volatile I2C_Type *port;
-	uint32_t scgc4_enable_mask; // Enable I2C0
-	uint32_t scgc5_enable_mask; //Enable ports
-	volatile PORT_Type *pin_port; //PORT of the pin
-	uint32_t scl_pin_num; //SCL pin number
-	uint32_t sda_pin_num; //SDA ping number
-	uint32_t pin_mux_config; //config to enable pins
-};
-
 //Add accel and other i2c pins
-static const struct i2c_info_holder i2c_info[] = {
+static struct i2c_handle i2c_info[] = {
 	{
-		.port				= I2C0,
-		.scgc4_enable_mask	= SIM_SCGC4_I2C0_MASK,
-		.scgc5_enable_mask  = SIM_SCGC5_PORTE_MASK,
-		.pin_port			= PORTE,
-		.scl_pin_num		= 24,
-		.sda_pin_num		= 25,
-		.pin_mux_config		= 5
+		.port			= I2C0,
+		.scgc4_mask		= SIM_SCGC4_I2C0_MASK,
+		.scgc5_mask		= SIM_SCGC5_PORTE_MASK,
+		.pin_port		= PORTE,
+		.scl			= 24,
+		.sda			= 25,
+		.mux			= 5,
 	},
 };
 
-static void  i2c_set_frequency(uint32_t i2c_idx, uint32_t baud)
+struct i2c_handle *i2c_get_default(uint32_t i2c_idx)
+{
+	return &i2c_info[i2c_idx];
+}
+
+static void  i2c_set_frequency(struct i2c_handle *h, uint32_t baud)
 {
 	uint32_t clock_rate = DEFAULT_BUS_CLOCK;
 	uint32_t c_baud;
@@ -76,7 +71,6 @@ static void  i2c_set_frequency(uint32_t i2c_idx, uint32_t baud)
 	uint8_t b_icr = 0;
 	uint32_t error = 0;
 	uint32_t error_margin = UINT_MAX;
-	volatile I2C_Type *i2c_b = i2c_info[i2c_idx].port;
 
 	for (m = 0; m < 2; ++m) {
 		m = 1U << m;
@@ -99,66 +93,56 @@ static void  i2c_set_frequency(uint32_t i2c_idx, uint32_t baud)
 			break;
 	}
 
-	i2c_b->F = I2C_F_ICR(b_icr) | I2C_F_MULT(b_mul);
+	h->port->F = I2C_F_ICR(b_icr) | I2C_F_MULT(b_mul);
 }
 
-static void enable_i2c_clock(uint32_t i2c_idx)
+static void enable_i2c_clock(struct i2c_handle *h)
 {
-	uint32_t scl_pin, scl_mux, sda_pin, sda_mux;
+	SIM->SCGC4 |= h->scgc4_mask;
+	SIM->SCGC5 |= h->scgc5_mask;
 
-	SIM->SCGC4 |= i2c_info[i2c_idx].scgc4_enable_mask;
-	SIM->SCGC5 |= i2c_info[i2c_idx].scgc5_enable_mask;
-
-	scl_pin = i2c_info[i2c_idx].scl_pin_num;
-	scl_mux = i2c_info[i2c_idx].pin_mux_config;
-
-	sda_pin = i2c_info[i2c_idx].sda_pin_num;
-	sda_mux = i2c_info[i2c_idx].pin_mux_config;
-
-	i2c_info[i2c_idx].pin_port->PCR[scl_pin] = PORT_PCR_MUX(scl_mux);
-	i2c_info[i2c_idx].pin_port->PCR[sda_pin] = PORT_PCR_MUX(sda_mux);
+	h->pin_port->PCR[h->scl] = PORT_PCR_MUX(h->mux);
+	h->pin_port->PCR[h->sda] = PORT_PCR_MUX(h->mux);
 }
 
-void i2c_init(uint32_t i2c_idx, uint32_t baud)
+void i2c_init(struct i2c_handle *h, uint32_t baud)
 {
-	volatile I2C_Type *i2c_b = i2c_info[i2c_idx].port;
+	volatile I2C_Type *i2c_b = h->port;
 
-	enable_i2c_clock(i2c_idx);
+	enable_i2c_clock(h);
 
 	i2c_b->C1 = 0;
 
-	i2c_set_frequency(i2c_idx,  baud);
+	i2c_set_frequency(h,  baud);
 
 	i2c_b->C1 = I2C_C1_IICEN(1);
 }
 
-bool i2c_read_register(uint32_t i2c_idx, uint8_t addr, uint8_t *val)
+bool i2c_read_register(struct i2c_handle *h, uint8_t raddr, uint8_t *val)
 {
-	volatile I2C_Type *i2c_b = i2c_info[i2c_idx].port;
+	i2c_start(h->port);
 
-	i2c_start(i2c_b);
+	i2c_write_byte(h->port, 0x1D << 1|I2C_WRITE);
+	i2c_wait(h->port);
+	i2c_is_ack(h->port);
 
-	i2c_write_byte(i2c_b, 0x1D << 1 |0);
-	i2c_wait(i2c_b);
-	i2c_is_ack(i2c_b);
+	i2c_write_byte(h->port, raddr);
+	i2c_wait(h->port);
+	i2c_is_ack(h->port);
 
-	i2c_write_byte(i2c_b, addr);
-	i2c_wait(i2c_b);
-	i2c_is_ack(i2c_b);
+	i2c_do_repeated_start(h->port);
+	i2c_write_byte(h->port, 0x1D << 1|I2C_READ);
+	i2c_wait(h->port);
+	i2c_is_ack(h->port);
 
-	i2c_do_repeated_start(i2c_b);
-	i2c_write_byte(i2c_b, 0x1D << 1|1);
-	i2c_wait(i2c_b);
-	i2c_is_ack(i2c_b);
+	i2c_set_rx_mode(h->port);
 
-	i2c_set_rx_mode(i2c_b);
+	i2c_send_nack(h->port);
+	*val = i2c_read_byte(h->port);
+	i2c_wait(h->port);
 
-	i2c_send_nack(i2c_b);
-	*val = i2c_read_byte(i2c_b);
-	i2c_wait(i2c_b);
-
-	i2c_stop(i2c_b);
-	*val = i2c_read_byte(i2c_b);
+	i2c_stop(h->port);
+	*val = i2c_read_byte(h->port);
 
 	//shoud i clear something here?
 	//
@@ -166,28 +150,26 @@ bool i2c_read_register(uint32_t i2c_idx, uint8_t addr, uint8_t *val)
 	return 0;
 }
 
-bool i2c_write_register(uint32_t i2c_idx, uint8_t addr, uint8_t data)
+bool i2c_write_register(struct i2c_handle *h, uint8_t addr, uint8_t data)
 {
-	volatile I2C_Type *i2c_b = i2c_info[i2c_idx].port;
-
-	i2c_start(i2c_b);
+	i2c_start(h->port);
 
 	//TODO:
-	i2c_write_byte(i2c_b, 0x1D << 1|0);
-	i2c_wait(i2c_b);
+	i2c_write_byte(h->port, 0x1D << 1|I2C_WRITE);
+	i2c_wait(h->port);
 
 	//TODO Add function to check for errors
-	i2c_is_ack(i2c_b);
+	i2c_is_ack(h->port);
 
-	i2c_write_byte(i2c_b, addr);
-	i2c_wait(i2c_b);
-	i2c_is_ack(i2c_b);
+	i2c_write_byte(h->port, addr);
+	i2c_wait(h->port);
+	i2c_is_ack(h->port);
 
-	i2c_write_byte(i2c_b, data);
-	i2c_wait(i2c_b);
-	i2c_is_ack(i2c_b);
+	i2c_write_byte(h->port, data);
+	i2c_wait(h->port);
+	i2c_is_ack(h->port);
 
-	i2c_stop(i2c_b);
+	i2c_stop(h->port);
 
 	return true;
 }

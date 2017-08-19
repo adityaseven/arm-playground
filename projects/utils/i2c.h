@@ -22,6 +22,26 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define I2C_READ  1u
+#define I2C_WRITE 0u
+
+struct i2c_handle {
+	volatile I2C_Type *port;
+	const uint32_t scgc4_mask; // Enable I2C0
+	const uint32_t scgc5_mask; //Enable ports
+	volatile PORT_Type *pin_port; //PORT of the pin
+	const uint32_t scl; //SCL pin number
+	const uint32_t sda; //SDA pin number
+	const uint32_t mux; //config to enable pins
+	//TODO: Need to decouple slave from handle
+	uint8_t slave;
+};
+
+static inline void i2c_set_slave_addr(struct i2c_handle *h, uint8_t s_addr)
+{
+	h->slave = s_addr;
+}
+
 static inline void i2c_set_tx_mode(volatile I2C_Type *i2c_b)
 {
 	i2c_b->C1 |= I2C_C1_TX_MASK;
@@ -115,9 +135,10 @@ static inline void i2c_stop(volatile I2C_Type *i2c_b)
 	i2c_set_rx_mode(i2c_b);
 }
 
-bool i2c_write_register(uint32_t i2c_idx, uint8_t addr, uint8_t data);
-bool i2c_read_register(uint32_t i2c_idx, uint8_t addr, uint8_t *val);
-void i2c_init(uint32_t i2c_idx, uint32_t baud);
+bool i2c_write_register(struct i2c_handle *h, uint8_t addr, uint8_t data);
+bool i2c_read_register(struct i2c_handle *h, uint8_t addr, uint8_t *val);
+void i2c_init(struct i2c_handle *h, uint32_t baud);
+struct i2c_handle *i2c_get_default(uint32_t i2c_idx);
 
 #endif /* ifndef _I2C_H_
 
