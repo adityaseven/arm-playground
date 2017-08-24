@@ -23,14 +23,7 @@
 #include <limits.h>
 #include <i2c.h>
 #include <debug_console.h>
-
-#define I2C0_SCL_PORT PORTE
-#define I2C0_SCL_PIN  24
-#define I2C0_SCL_MUX  5
-
-#define I2C0_SDA_PORT PORTE
-#define I2C0_SDA_PIN  25
-#define I2C0_SDA_MUX  5
+#include <mma8451q.h>
 
 int main()
 {
@@ -44,7 +37,7 @@ int main()
 
 	while(1) {
 		uint8_t val = 0;
-		i2c_read_register(h, 0x0D, &val);
+		i2c_read_reg(h, WHO_AM_I, &val, 1);
 		printf("%x\r\n",val);
 	}
 	return 1;

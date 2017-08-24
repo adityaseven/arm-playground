@@ -135,8 +135,8 @@ static inline void i2c_stop(volatile I2C_Type *i2c_b)
 	i2c_set_rx_mode(i2c_b);
 }
 
-bool i2c_write_register(struct i2c_handle *h, uint8_t addr, uint8_t data);
-bool i2c_read_register(struct i2c_handle *h, uint8_t addr, uint8_t *val);
+bool i2c_write_reg(struct i2c_handle *h, uint8_t addr, uint8_t *data, uint8_t len);
+bool i2c_read_reg(struct i2c_handle *h, uint8_t addr, uint8_t *val, uint8_t len);
 void i2c_init(struct i2c_handle *h, uint32_t baud);
 struct i2c_handle *i2c_get_default(uint32_t i2c_idx);
 

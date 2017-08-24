@@ -118,25 +118,24 @@ void i2c_init(struct i2c_handle *h, uint32_t baud)
 	i2c_b->C1 = I2C_C1_IICEN(1);
 }
 
-bool i2c_read_register(struct i2c_handle *h, uint8_t raddr, uint8_t *val)
+static bool i2c_write(struct i2c_handle *h, uint8_t val)
+{
+	i2c_write_byte(h->port, val);
+	i2c_wait(h->port);
+
+	return i2c_is_ack(h->port);
+}
+
+bool i2c_read_reg(struct i2c_handle *h, uint8_t raddr, uint8_t *val, uint8_t len)
 {
 	i2c_start(h->port);
 
-	i2c_write_byte(h->port, h->slave|I2C_WRITE);
-	i2c_wait(h->port);
-	i2c_is_ack(h->port);
-
-	i2c_write_byte(h->port, raddr);
-	i2c_wait(h->port);
-	i2c_is_ack(h->port);
-
+	i2c_write(h, h->slave|I2C_WRITE);
+	i2c_write(h, raddr);
 	i2c_do_repeated_start(h->port);
-	i2c_write_byte(h->port, h->slave|I2C_READ);
-	i2c_wait(h->port);
-	i2c_is_ack(h->port);
+	i2c_write(h, h->slave|I2C_READ);
 
 	i2c_set_rx_mode(h->port);
-
 	i2c_send_nack(h->port);
 	*val = i2c_read_byte(h->port);
 	i2c_wait(h->port);
@@ -150,24 +149,17 @@ bool i2c_read_register(struct i2c_handle *h, uint8_t raddr, uint8_t *val)
 	return 0;
 }
 
-bool i2c_write_register(struct i2c_handle *h, uint8_t addr, uint8_t data)
+
+
+bool i2c_write_reg(struct i2c_handle *h, uint8_t addr, uint8_t *data, uint8_t len)
 {
 	i2c_start(h->port);
 
 	//TODO:
-	i2c_write_byte(h->port, h->slave|I2C_WRITE);
-	i2c_wait(h->port);
-
 	//TODO Add function to check for errors
-	i2c_is_ack(h->port);
-
-	i2c_write_byte(h->port, addr);
-	i2c_wait(h->port);
-	i2c_is_ack(h->port);
-
-	i2c_write_byte(h->port, data);
-	i2c_wait(h->port);
-	i2c_is_ack(h->port);
+	i2c_write(h, h->slave|I2C_WRITE);
+	i2c_write(h, addr);
+	i2c_write(h, data[0]);
 
 	i2c_stop(h->port);
 
