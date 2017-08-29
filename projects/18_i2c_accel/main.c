@@ -36,9 +36,11 @@ int main()
 	i2c_set_slave_addr(h, 0x1D);
 
 	while(1) {
-		uint8_t val = 0;
-		i2c_read_reg(h, WHO_AM_I, &val, 1);
-		printf("%x\r\n",val);
+		uint8_t val[2];
+		val[0] = WHO_AM_I;
+		i2c_write_reg(h, &val[0], 1);
+		i2c_read_reg(h, &val[1], 1);
+		printf("%x\r\n",val[1]);
 	}
 	return 1;
 }

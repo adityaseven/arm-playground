@@ -37,6 +37,19 @@ struct i2c_handle {
 	uint8_t slave;
 };
 
+static int timeout_poll_status(volatile I2C_Type *port, uint32_t mask)
+{
+	uint32_t i, timeout = 100000;
+
+	for (i = 0; i < timeout; i++) {
+		if(port->S & mask)
+			return 0;
+	}
+
+	return 1;
+}
+
+
 static inline void i2c_set_slave_addr(struct i2c_handle *h, uint8_t s_addr)
 {
 	h->slave = (s_addr << 1);
@@ -101,16 +114,21 @@ static inline void i2c_do_repeated_start(volatile I2C_Type *i2c_b )
 	i2c_b->C1 |=I2C_C1_RSTA_MASK;
 }
 
-static inline void i2c_wait(volatile I2C_Type *i2c_b)
+static inline bool i2c_wait(volatile I2C_Type *i2c_b)
 {
-	while (! (i2c_b->S & I2C_S_IICIF_MASK));
+	bool ret;
 
-	i2c_b->S = I2C_S_IICIF_MASK;
+	ret = timeout_poll_status(i2c_b, I2C_S_IICIF_MASK);
+
+	if(!ret)
+		i2c_b->S = I2C_S_IICIF_MASK;
+
+	return ret;
 }
 
-static inline void i2c_wait_transfer_complete(volatile I2C_Type *i2c_b)
+static inline bool i2c_wait_transfer_complete(volatile I2C_Type *i2c_b)
 {
-	while (! (i2c_b->S & I2C_S_TCF_MASK));
+	return timeout_poll_status(i2c_b, I2C_S_TCF_MASK);
 }
 
 static inline uint8_t i2c_read_byte(volatile I2C_Type *i2c_b)
@@ -135,8 +153,8 @@ static inline void i2c_stop(volatile I2C_Type *i2c_b)
 	i2c_set_rx_mode(i2c_b);
 }
 
-bool i2c_write_reg(struct i2c_handle *h, uint8_t addr, uint8_t *data, uint8_t len);
-bool i2c_read_reg(struct i2c_handle *h, uint8_t addr, uint8_t *val, uint8_t len);
+bool i2c_write_reg(struct i2c_handle *h,uint8_t *data, uint8_t len);
+bool i2c_read_reg(struct i2c_handle *h, uint8_t *val, uint8_t len);
 void i2c_init(struct i2c_handle *h, uint32_t baud);
 struct i2c_handle *i2c_get_default(uint32_t i2c_idx);
 
